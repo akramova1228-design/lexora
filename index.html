@@ -138,7 +138,7 @@ function arts(){cur="";tab="art";
 function hub(id){cur=id;tab="art";
  const a=ARTS().find(x=>x.id===id),p=P(id),d=[p[0],p[1],p[2],st4(id)];
  const N=["O‘qish","Savollar","Comprehension","O‘yinlar"],D=["Maqolani o‘qing, so‘zlarni vocab box ga qo‘shing","15 ta savol: True/False, MCQ, gap to‘ldirish (kamida 60%)","Maqola haqida o‘z so‘zlaringiz bilan yozing","So‘zlarni 5 ta o‘yin bilan faollashtiring"];
- $("#v").innerHTML=`${hd(esc(a.title),0,0,1)}<p class="mut">${a.day?"Day "+a.day+" · Manba: english-practice.at (to‘plam: Mokhida Khakimova)":"Sinov maqolasi (trial)"}</p>${N.map((n,i)=>{const o=i===0||d[i-1];return `<button class="card stage${o?"":" lock"}" data-stage="${i}" ${o?"":"disabled"}><span class="sn">${d[i]?"✅":o?i+1:"🔒"}</span><span><b>${n}</b><br><span class="mut">${D[i]}</span></span></button>`}).join("")}`}
+ $("#v").innerHTML=`${hd(esc(a.title),0,0,1)}<p class="mut">${a.day?"Day "+a.day+" · Manba: english-practice.at (to‘plam: Mokhida Khakimova)":"Sinov maqolasi (trial)"}</p>${N.map((n,i)=>{const o=prof.role==="teacher"||i===0||d[i-1];return `<button class="card stage${o?"":" lock"}" data-stage="${i}" ${o?"":"disabled"}><span class="sn">${d[i]?"✅":o?i+1:"🔒"}</span><span><b>${n}</b><br><span class="mut">${D[i]}</span></span></button>`}).join("")}`}
 function add(){tab="art";
  $("#v").innerHTML=`${hd("Yangi maqola",0,0,1)}<div class="card"><input type="text" id="ad1" inputmode="numeric" placeholder="Kun raqami (1–30)" value="${ARTS().filter(z=>z.day).length+1}"><input type="text" id="at" placeholder="Sarlavha"><textarea id="ax" rows="7" placeholder="Maqola matni (inglizcha)"></textarea>
  <textarea id="ag" rows="4" placeholder="Target so‘zlar (sariq), har qatorda bittadan:&#10;consolidates = mustahkamlaydi"></textarea>
