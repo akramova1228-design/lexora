@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WordBoost</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6f8;--ink:#12263a;--mut:#5b6b7e;--card:#fff;--line:#d8e0e8;--acc:#0f766e;--acc2:#f97316;--ok:#1f8f4e;--bad:#c23b2a;--hl:#ffe9a8;--hl2:#cdeee9;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1a22;--ink:#e8f0f5;--mut:#9db0c0;--card:#14262f;--line:#27404e;--acc:#2dd4bf;--acc2:#fb923c;--hl:#5a4a12;--hl2:#12504a}}
+:root[data-theme="dark"]{--bg:#0c1a22;--ink:#e8f0f5;--mut:#9db0c0;--card:#14262f;--line:#27404e;--acc:#2dd4bf;--acc2:#fb923c;--hl:#5a4a12;--hl2:#12504a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Sora,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding:14px 16px 100px}
+h1{font-size:1.5rem;font-weight:800;margin:0}h2{font-size:1.2rem;margin:0 0 8px}h3{font-size:1rem;margin:0 0 4px}
+.big{font-size:2rem;text-align:center;margin:18px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.mut{color:var(--mut);font-size:.88rem;margin:2px 0}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px}
+button,input,textarea{font:inherit;color:inherit}
+.btn{background:var(--acc);color:var(--bg);border:0;border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn.alt{background:var(--card);color:var(--ink);border:2px solid var(--line)}.btn.sm{padding:4px 12px;margin:0}
+.btn:disabled{opacity:.4;cursor:default}
+input[type=text],textarea{width:100%;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:10px;margin:6px 0}
+:focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar{height:8px;background:var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;background:var(--acc)}
+.art{font-size:1.08rem;line-height:1.9}
+.w{cursor:pointer;border-radius:5px}.w.t{background:var(--hl)}.w.u{background:var(--hl2)}
+.note{background:var(--hl2);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:.9rem}
+.opt{display:block;width:100%;text-align:left;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:11px 12px;margin:8px 0;cursor:pointer}
+.opt.ok,.pr.gone{border-color:var(--ok)}.opt.bad{border-color:var(--bad)}
+.flash{min-height:170px;display:grid;place-items:center;text-align:center;font-size:1.7rem;font-weight:800;border:2px dashed var(--acc);border-radius:18px;padding:16px;cursor:pointer;margin-bottom:8px}
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pr{display:block;width:100%;margin-bottom:8px;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 8px;cursor:pointer}
+.pr.sel{border-color:var(--acc2)}.pr.gone{opacity:.35}
+.shake{border-color:var(--bad)}
+.chip{font-size:.75rem;border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.err{color:var(--bad);font-size:.9rem}.okm{color:var(--ok)}
+#sh{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:0 12px calc(78px + env(safe-area-inset-bottom,0px));background:transparent}
+#sh[hidden]{display:none}
+#sh .card{box-shadow:0 -6px 30px rgba(0,0,0,.25);margin:0}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:center;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;max-width:140px;border:0;border-radius:12px;background:none;padding:6px;font-size:.72rem;color:var(--mut);display:flex;flex-direction:column;align-items:center;cursor:pointer}
+nav button span{font-size:1.35rem}
+nav button[aria-current=true]{background:var(--hl2);color:var(--ink)}
+.w.g{border-bottom:2px dotted var(--mut)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.chips .chip{background:var(--hl);border:0;padding:5px 11px;font-size:.85rem;color:var(--ink);cursor:pointer}
+.stage{display:flex;gap:12px;align-items:center;width:100%;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
+.stage.lock{opacity:.5;cursor:default}.sn{font-size:1.4rem;min-width:30px;text-align:center;font-weight:800}
+.gg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gc{border:0;border-radius:18px;padding:16px;text-align:left;color:#fff;min-height:110px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;font:inherit}
+.gc span{font-size:.8rem;opacity:.92}.gc:disabled{opacity:.4;cursor:default}
+.big2{font-size:1.2rem;font-weight:600;margin:4px 0 8px}
+nav[hidden]{display:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;font-size:.8rem;color:var(--mut)}.stat b{display:block;font-size:1.5rem;color:var(--ink)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="wrap"><div class="hd" style="justify-content:space-between"><h1>WordBoost</h1><span id="hu"></span></div><div id="v"></div></div>
+<div id="sh" hidden></div>
+<nav hidden><button data-go="art"><span>📖</span>Maqolalar</button><button data-go="box"><span>🧺</span>Vocab box</button></nav>
+<script>
+const SEED=[{id:"sleep",day:1,title:"Why Sleep Matters",
+text:"Scientists have long argued that sleep is essential for health. During sleep the brain consolidates memories and removes harmful waste. People who regularly lack sleep often struggle to concentrate and make poor decisions. Researchers discovered that even a minor reduction in rest can impair performance at work. Adults should aim for seven to nine hours each night. To improve sleep quality, experts recommend a consistent routine, avoiding caffeine late in the day, and keeping the bedroom quiet and dark. Devices that emit bright light can disrupt the body’s natural rhythm. Although some people claim they function well on little rest, evidence suggests they underestimate the damage. A sufficient amount of sleep strengthens immunity, stabilizes mood, and enhances creativity. Therefore, treating sleep as a priority rather than a luxury is a wise investment in long-term wellbeing.",
+targets:[["essential","zarur"],["consolidates","mustahkamlaydi"],["harmful","zararli"],["regularly","muntazam"],["lack","yetishmaslik"],["struggle","qiynalmoq"],["concentrate","diqqatni jamlamoq"],["minor","ahamiyatsiz, kichik"],["reduction","kamayish"],["impair","zaiflashtirmoq"],["performance","samaradorlik"],["aim","maqsad qilmoq"],["recommend","tavsiya qilmoq"],["consistent","izchil, barqaror"],["avoiding","qochish"],["emit","chiqarmoq (nur)"],["disrupt","izdan chiqarmoq"],["rhythm","ritm"],["claim","da’vo qilmoq"],["evidence","dalil"],["underestimate","kam baholamoq"],["sufficient","yetarli"],["strengthens","kuchaytiradi"],["enhances","oshiradi, yaxshilaydi"],["priority","ustuvor vazifa"]],
+gl:{scientists:"olimlar",memories:"xotiralar",waste:"chiqindi",researchers:"tadqiqotchilar",decisions:"qarorlar",routine:"tartib, odat",caffeine:"kofein",devices:"qurilmalar",immunity:"immunitet",stabilizes:"barqarorlashtiradi",creativity:"ijodkorlik",luxury:"hashamat",investment:"sarmoya",wellbeing:"farovonlik"},
+qs:[
+{t:"tf",q:"During sleep the brain consolidates memories.",a:true},
+{t:"tf",q:"A small reduction in rest cannot affect performance at work.",a:false},
+{t:"tf",q:"Bright light from devices can disturb the body’s natural rhythm.",a:true},
+{t:"tf",q:"People who sleep little always judge the damage correctly.",a:false},
+{t:"tf",q:"The writer says sleep should be treated as a luxury.",a:false},
+{t:"mcq",q:"How many hours of sleep should adults aim for?",o:["Five to six","Seven to nine","Ten to twelve"],a:1},
+{t:"mcq",q:"What is the writer’s main message?",o:["Sleep should be a priority","Caffeine is helpful at night","Bedrooms should be bright"],a:0},
+{t:"mcq",q:"What does the brain remove during sleep?",o:["Harmful waste","Useful memories","Bright light"],a:0},
+{t:"mcq",q:"Which habit do experts recommend?",o:["Drinking coffee late","A consistent routine","A bright bedroom"],a:1},
+{t:"mcq",q:"What does enough sleep improve?",o:["Only appetite","Mood and creativity","Eyesight only"],a:1},
+{t:"gap",q:"Bright light from devices can ___ the body’s natural rhythm.",a:"disrupt"},
+{t:"gap",q:"Experts ___ a consistent sleep routine.",a:"recommend"},
+{t:"gap",q:"Lack of sleep can ___ performance at work.",a:"impair"},
+{t:"gap",q:"Sleep is ___ for good health.",a:"essential"},
+{t:"gap",q:"A ___ amount of sleep strengthens immunity.",a:"sufficient"}]}];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sb=supabase.createClient("https://ycbmyxvegajwzqnzabam.supabase.co","sb_publishable_netKzVpjU2tAfY59tn-3-w_ZoO1efLs");
+let S={arts:[],box:{},comp:{},p:{}},tab="art",cur="",me=null,prof={role:"student"},REM=[],tm=null;
+const save=()=>{try{localStorage.setItem("wb_"+(me?me.id:"x"),JSON.stringify(S))}catch(e){}if(me){clearTimeout(tm);tm=setTimeout(push,1500)}};
+const ARTS=()=>SEED.concat(REM);
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+const gd=x=>x.g||(x.g=[0,0,0,0,0]),act=x=>gd(x).every(Boolean);
+const pass=(x,i)=>{gd(x)[i]=1;save()};
+const hd=(t,i,n,h)=>`<div class="hd"><button class="btn alt sm" ${h?'data-go="art"':`data-hub="${cur}"`}>←</button><b>${t}</b></div>${n?`<div class="bar"><i style="width:${i/n*100}%"></i></div>`:""}`;
+const fin=m=>{$("#v").innerHTML=`<div class="card"><h2>${m}</h2><button class="btn" data-games="1">Davom etish</button></div>`};
+function guard(el){let p="";
+ ["paste","drop"].forEach(n=>el.addEventListener(n,e=>e.preventDefault()));
+ el.addEventListener("beforeinput",e=>{if(/Paste|Drop/.test(e.inputType||""))e.preventDefault()});
+ el.addEventListener("input",e=>{if(e.data&&e.data.length>12)el.value=p;else p=el.value});
+}
+function go(t){tab=t;$("#sh").hidden=true;
+ document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.go===t||(t==="add"&&b.dataset.go==="art")));
+ ({art:arts,box:boxv,add,prog})[t]();window.scrollTo(0,0)}
+document.addEventListener("click",e=>{
+ const g=e.target.closest("[data-go]");if(g)return go(g.dataset.go);
+ const h=e.target.closest("[data-hub]");if(h)return hub(h.dataset.hub);const sg=e.target.closest("[data-stage]");if(sg&&!sg.disabled)return [read,quiz,comp,games][+sg.dataset.stage](ARTS().find(x=>x.id===cur));const gm=e.target.closest("[data-games]");if(gm)return games(ARTS().find(x=>x.id===cur));
+ const q=e.target.closest("[data-game]");if(q){const i=+q.dataset.game;
+  const W=wordsOf(cur),T=W.filter(x=>!gd(x)[i]),L=shuffle(T.length?T:W).slice(0,[10,6,10,10,4][i]);if(i===4&&!T.length)L.forEach(x=>x.sen=[]);
+  tab="art";[gFlash,gMatch,gMcq,gType,gSent][i](L)}
+});
+const P=id=>S.p[id]||(S.p[id]=[0,0,0]);
+const wordsOf=id=>Object.values(S.box).filter(x=>x.a===id);
+const st4=id=>{const w=wordsOf(id);return w.length>0&&w.every(act)};
+const nDone=id=>P(id).filter(Boolean).length+(st4(id)?1:0);
+function arts(){cur="";
+ const L=ARTS().slice().sort((a,b)=>a.day-b.day);
+ $("#v").innerHTML=`<h2>30 kunlik reja</h2><p class="mut">Maqolani tanlang va 4 bosqichni ketma-ket bajaring.</p>${L.map(a=>`<div class="card item" data-hub="${a.id}" style="cursor:pointer"><div><span class="chip">Day ${a.day}</span><h3 style="margin-top:6px">${esc(a.title)}</h3><p class="mut">${a.targets.length} ta target so‘z</p></div><b>${nDone(a.id)}/4</b></div>`).join("")}${prof.role==="teacher"?'<button class="btn alt" data-go="add">+ Maqola qo‘shish</button>':""}`}
+function hub(id){cur=id;tab="art";
+ const a=ARTS().find(x=>x.id===id),p=P(id),d=[p[0],p[1],p[2],st4(id)];
+ const N=["O‘qish","Savollar","Comprehension","O‘yinlar"],D=["Maqolani o‘qing, so‘zlarni vocab box ga qo‘shing","15 ta savol: True/False, MCQ, gap to‘ldirish (kamida 60%)","Maqola haqida o‘z so‘zlaringiz bilan yozing","So‘zlarni 5 ta o‘yin bilan faollashtiring"];
+ $("#v").innerHTML=`${hd(esc(a.title),0,0,1)}<p class="mut">Day ${a.day}</p>${N.map((n,i)=>{const o=i===0||d[i-1];return `<button class="card stage${o?"":" lock"}" data-stage="${i}" ${o?"":"disabled"}><span class="sn">${d[i]?"✅":o?i+1:"🔒"}</span><span><b>${n}</b><br><span class="mut">${D[i]}</span></span></button>`}).join("")}`}
+function add(){tab="art";
+ $("#v").innerHTML=`${hd("Yangi maqola",0,0,1)}<div class="card"><input type="text" id="ad1" inputmode="numeric" placeholder="Kun raqami (1–30)" value="${ARTS().length+1}"><input type="text" id="at" placeholder="Sarlavha"><textarea id="ax" rows="7" placeholder="Maqola matni (inglizcha)"></textarea>
+ <textarea id="ag" rows="4" placeholder="Target so‘zlar (sariq), har qatorda bittadan:&#10;consolidates = mustahkamlaydi"></textarea>
+ <textarea id="al" rows="4" placeholder="Qo‘shimcha so‘zlar (nuqtali), har qatorda bittadan:&#10;memories = xotiralar"></textarea>
+ <textarea id="aq" rows="6" placeholder="Savollar, har qatorda bittadan:&#10;TF | gap | true&#10;MCQ | savol | A | B | C | 2&#10;GAP | gap ___ davomi | javob"></textarea><p id="fb" class="err"></p><button class="btn" id="sv">Saqlash</button></div>`;
+ const kv=t=>t.split("\n").map(l=>l.split("=").map(x=>x.trim())).filter(q=>q[0]&&q[1]);
+ $("#sv").onclick=()=>{const title=$("#at").value.trim(),text=$("#ax").value.trim(),targets=kv($("#ag").value).map(q=>[q[0].toLowerCase(),q[1]]);
+  if(!title||!text||!targets.length)return $("#fb").textContent="Sarlavha, matn va kamida bitta target so‘z kerak.";
+  const gl={};kv($("#al").value).forEach(q=>gl[q[0].toLowerCase()]=q[1]);
+  const qs=$("#aq").value.split("\n").map(l=>l.split("|").map(x=>x.trim())).filter(q=>q.length>=3).map(q=>{const k=q[0].toUpperCase();
+   if(k==="TF")return{t:"tf",q:q[1],a:/^t/i.test(q[2])};
+   if(k==="GAP")return{t:"gap",q:q[1],a:q[2].toLowerCase()};
+   if(k==="MCQ"&&q.length>=5)return{t:"mcq",q:q[1],o:q.slice(2,-1),a:parseInt(q[q.length-1],10)-1}}).filter(Boolean);
+  const day=parseInt($("#ad1").value,10)||ARTS().length+1,id="a"+Date.now();
+  sb.from("wb_articles").insert({id,day,data:{title,text,targets,gl,qs}}).then(r=>{if(r.error)return $("#fb").textContent=r.error.message;REM.push({id,day,title,text,targets,gl,qs});go("art")})};
+}
+function read(a){tab="art";const T={},G=a.gl||{};
+ a.targets.forEach(([w,m])=>{w=w.toLowerCase();T[w]=m;if(!S.box[w])S.box[w]={w,m,s:0,a:a.id,sen:[]}});save();
+ $("#v").innerHTML=`${hd(esc(a.title),0,0)}<p class="mut">Sariq: target so‘zlar (vocab box da). Nuqtali: bilmasligingiz mumkin. Bosib tarjimasini ko‘ring.</p><div class="chips">${a.targets.map(([w])=>`<button class="chip w" data-w="${esc(w.toLowerCase())}">${esc(w)}</button>`).join("")}</div>
+ <div class="card art" id="tx">${a.text.split(/([A-Za-z’']+)/).map((q,i)=>{const k=q.toLowerCase();return i%2?`<span class="w${T[k]?" t":S.box[k]?" u":G[k]?" g":""}" data-w="${esc(k)}">${esc(q)}</span>`:esc(q)}).join("")}</div><button class="btn" id="rd">O‘qib bo‘ldim ✓</button>`;
+ $("#v").onclick=e=>{const w=e.target.closest(".w");if(w)sheet(w.dataset.w,T,G)};
+ $("#rd").onclick=()=>{P(a.id)[0]=1;save();hub(a.id)}}
+function sheet(w,T,G){
+ const b=S.box[w],m=T[w]||G[w]||(b&&b.m)||"",el=$("#sh");el.hidden=false;
+ el.innerHTML=`<div class="card"><h2>${esc(w)}</h2>${m?`<p class="big2">${esc(m)}</p>`:`<input type="text" id="mm" placeholder="Tarjimasi topilmadi. O‘zingiz yozing">`}<div class="row">${b?`<span class="chip">✔ Vocab boxda</span>`:`<button class="btn" id="ad">✔️ Vocab box ga qo‘shish</button>`}${b&&!T[w]?`<button class="btn alt" id="rm">Olib tashlash</button>`:""}<button class="btn alt" id="cl">Yopish</button></div></div>`;
+ const paint=on=>document.querySelectorAll(`#tx .w[data-w="${w}"]`).forEach(x=>{x.classList.toggle("u",on);if(!T[w])x.classList.toggle("g",!on&&!!G[w])});
+ $("#cl").onclick=()=>el.hidden=true;
+ if($("#ad"))$("#ad").onclick=()=>{const v=m||$("#mm").value.trim();if(!v)return;S.box[w]={w,m:v,s:0,a:cur,sen:[]};save();paint(true);el.hidden=true};
+ if($("#rm"))$("#rm").onclick=()=>{delete S.box[w];save();paint(false);el.hidden=true};
+}
+function boxv(){
+ const L=Object.values(S.box),n=L.filter(act).length;
+ $("#v").innerHTML=`<h2>Vocab box</h2><p class="mut">${L.length} ta so‘z · ${n} tasi to‘liq faollashgan</p>${L.map(x=>`<div class="card item"><div><h3>${esc(x.w)}</h3><p class="mut">${esc(x.m)}</p></div><span class="chip">${act(x)?"✅ faol":gd(x).filter(Boolean).length+" / 5"}</span></div>`).join("")||'<p class="mut">Hali so‘z yo‘q. Maqola o‘qing.</p>'}`}
+const GN=["Flashcard","Ma’noni toping","Multiple choice","So‘zni yozing","3 ta gap tuzing"];
+const GC=["#2b3ea8,#4a5df0","#0e7490,#22b8cf","#15803d,#4ade80","#c2410c,#fb923c","#be185d,#f472b6"];
+function games(a){tab="art";const W=wordsOf(a.id),n=GN.map((_,i)=>W.filter(x=>!gd(x)[i]).length);
+ $("#v").innerHTML=`${hd("O‘yinlar")}<p class="mut">${W.length} ta so‘z. O‘yinlarni xohlagan tartibda o‘ynang. Bajarilganlari saqlanadi, xohlasangiz takrorlashingiz mumkin.</p><div class="gg">${GN.map((g,i)=>`<button class="gc" style="background:linear-gradient(135deg,${GC[i]})" data-game="${i}"><b>${n[i]?"":"✅ "}${i+1}. ${g}</b><span>${n[i]?n[i]+" ta so‘z qoldi":"Bajarilgan · takrorlash"}</span></button>`).join("")}</div>`}
+function gFlash(q){let i=0;
+ const nx=()=>{if(i>=q.length)return fin("Flashcard tugadi");const x=q[i];let f=false;
+  $("#v").innerHTML=`${hd("Flashcard",i,q.length)}<div class="flash" id="fc">${esc(x.w)}</div><p class="mut" style="text-align:center">Ma’noni ko‘rish uchun kartani bosing</p><div class="row"><button class="btn alt" id="a">Yana ko‘rsat</button><button class="btn" id="b">Bilaman</button></div>`;
+  $("#fc").onclick=()=>{f=!f;$("#fc").textContent=f?x.m:x.w};
+  $("#b").onclick=()=>{pass(x,0);i++;nx()};
+  $("#a").onclick=()=>{q.push(q.splice(i,1)[0]);nx()}};nx()}
+function gMatch(q){let L=null,R=null,left=q.length;
+ $("#v").innerHTML=`${hd("Ma’noni toping")}<div class="pairs"><div>${shuffle(q).map(x=>`<button class="pr" data-s="l" data-w="${esc(x.w)}">${esc(x.w)}</button>`).join("")}</div><div>${shuffle(q).map(x=>`<button class="pr" data-s="r" data-w="${esc(x.w)}">${esc(x.m)}</button>`).join("")}</div></div>`;
+ document.querySelectorAll(".pr").forEach(b=>b.onclick=()=>{
+  const s=b.dataset.s;document.querySelectorAll(`.pr[data-s="${s}"]`).forEach(x=>x.classList.remove("sel"));b.classList.add("sel");
+  if(s==="l")L=b;else R=b;
+  if(L&&R){
+   if(L.dataset.w===R.dataset.w){pass(q.find(z=>z.w===L.dataset.w),1);[L,R].forEach(x=>{x.classList.remove("sel");x.classList.add("gone");x.disabled=true});left--;L=R=null;if(!left)fin("Matching tugadi")}
+   else{[L,R].forEach(x=>x.classList.add("shake"));L=R=null;setTimeout(()=>document.querySelectorAll(".pr").forEach(x=>x.classList.remove("sel","shake")),450)}}})}
+function gMcq(q){let i=0;const pool=Object.values(S.box).map(x=>x.m);
+ const nx=()=>{if(i>=q.length)return fin("Multiple choice tugadi");const x=q[i];
+  const o=shuffle([x.m,...shuffle(pool.filter(m=>m!==x.m)).slice(0,3)]);
+  $("#v").innerHTML=`${hd("Multiple choice",i,q.length)}<h2 class="big">${esc(x.w)}</h2>${o.map(m=>`<button class="opt">${esc(m)}</button>`).join("")}`;
+  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+   document.querySelectorAll(".opt").forEach(z=>{z.disabled=true;if(z.textContent===x.m)z.classList.add("ok")});
+   if(b.textContent===x.m)pass(x,2);else{b.classList.add("bad");q.push(x)}
+   setTimeout(()=>{i++;nx()},900)})};nx()}
+function gType(q){let i=0;
+ const nx=()=>{if(i>=q.length)return fin("Typing tugadi");const x=q[i];
+  $("#v").innerHTML=`${hd("So‘zni yozing",i,q.length)}<div class="card"><p class="mut">Ma’nosi:</p><h2>${esc(x.m)}</h2><input type="text" id="ti" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Inglizcha so‘zni yozing"><button class="btn" id="ck">Tekshirish</button><p id="fb"></p></div>`;
+  guard($("#ti"));
+  const chk=()=>{if($("#ck").disabled)return;$("#ck").disabled=true;const ok=$("#ti").value.trim().toLowerCase()===x.w;
+   $("#fb").innerHTML=ok?'<span class="okm">To‘g‘ri!</span>':`To‘g‘ri javob: <b>${esc(x.w)}</b>`;
+   if(ok)pass(x,3);else q.push(x);setTimeout(()=>{i++;nx()},1100)};
+  $("#ck").onclick=chk;$("#ti").onkeydown=e=>{if(e.key==="Enter")chk()}};nx()}
+function gSent(q){let i=0;
+ const nx=()=>{if(i>=q.length)return fin("So‘zlar faollashtirildi 🎉");const x=q[i];
+  $("#v").innerHTML=`${hd("3 ta gap tuzing",i,q.length)}<div class="card"><h2>${esc(x.w)}</h2><p class="mut">${esc(x.m)}</p>${x.sen.map(s=>`<p>✅ ${esc(s)}</p>`).join("")}<p><b>${x.sen.length+1}-gap:</b></p><textarea id="st" rows="3" placeholder="Gapni o‘zingiz yozing (nusxa qo‘yib bo‘lmaydi)"></textarea><button class="btn" id="sb">Qo‘shish</button><p id="fb" class="err"></p></div>`;
+  guard($("#st"));
+  $("#sb").onclick=()=>{const t=$("#st").value.trim(),st=x.w.slice(0,Math.max(3,x.w.length-3)),f=m=>{$("#fb").textContent=m};
+   if(t.split(/\s+/).length<5)return f("Gap kamida 5 ta so‘zdan iborat bo‘lsin.");
+   if(!t.toLowerCase().includes(st))return f(`Gapda “${x.w}” so‘zi ishlatilishi kerak.`);
+   if(x.sen.includes(t))return f("Bu gap allaqachon yozilgan.");
+   x.sen.push(t);save();if(x.sen.length>=3){pass(x,4);i++}nx()}};nx()}
+function comp(a){
+ $("#v").innerHTML=`${hd("Comprehension")}<div class="card"><h2>${esc(a.title)}</h2><p>Maqola nima haqida edi? O‘z so‘zlaringiz bilan yozing (kamida 20 so‘z).</p><textarea id="sm" rows="7"></textarea><p class="mut" id="wc">0 so‘z</p><p id="fb" class="err"></p><button class="btn" id="go">Davom etish</button></div>`;
+ const t=$("#sm");guard(t);
+ t.addEventListener("input",()=>$("#wc").textContent=(t.value.trim()?t.value.trim().split(/\s+/).length:0)+" so‘z");
+ $("#go").onclick=()=>{const n=t.value.trim()?t.value.trim().split(/\s+/).length:0;
+  if(n<20)return $("#fb").textContent="Kamida 20 ta so‘z yozing.";
+  S.comp[a.id]={sum:t.value.trim()};P(a.id)[2]=1;save();
+  $("#v").innerHTML=`<div class="card"><h2>Javobingiz saqlandi ✅</h2><button class="btn" data-hub="${a.id}">Keyingi bosqich</button></div>`}}
+function quiz(a){let i=0,sc=0;const Q=a.qs;
+ const nx=()=>{
+  if(i>=Q.length){const ok=sc>=Math.ceil(Q.length*.6);if(ok){P(a.id)[1]=1;S.comp[a.id]=Object.assign(S.comp[a.id]||{},{score:sc})}save();
+   return $("#v").innerHTML=`<div class="card"><h2>Natija: ${sc} / ${Q.length}</h2><p>${ok?"Bosqich bajarildi ✅":"Keyingi bosqich uchun kamida ${Math.ceil(Q.length*.6)} ta to‘g‘ri javob kerak. Qayta urinib ko‘ring."}</p><button class="btn" data-hub="${a.id}">Orqaga</button></div>`}
+  const q=Q[i];let body="";
+  if(q.t==="tf")body=["True","False"].map((o,j)=>`<button class="opt" data-a="${j}">${o}</button>`).join("");
+  if(q.t==="mcq")body=q.o.map((o,j)=>`<button class="opt" data-a="${j}">${esc(o)}</button>`).join("");
+  if(q.t==="gap")body=`<input type="text" id="gi" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn" id="gb">Tekshirish</button>`;
+  $("#v").innerHTML=`${hd("Savol "+(i+1)+" / "+Q.length,i,Q.length)}<div class="card"><p><b>${esc(q.q)}</b></p>${body}<p id="fb"></p></div>`;
+  const done=ok=>{if(ok)sc++;$("#fb").innerHTML=ok?'<span class="okm">To‘g‘ri!</span>':`To‘g‘ri javob: <b>${esc(q.t==="tf"?(q.a?"True":"False"):q.t==="mcq"?q.o[q.a]:q.a)}</b>`;setTimeout(()=>{i++;nx()},1200)};
+  if(q.t==="gap"){guard($("#gi"));$("#gb").onclick=()=>{$("#gb").disabled=true;done($("#gi").value.trim().toLowerCase()===q.a)}}
+  else document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{document.querySelectorAll(".opt").forEach(z=>z.disabled=true);const j=+b.dataset.a,ok=q.t==="tf"?(j===0)===q.a:j===q.a;b.classList.add(ok?"ok":"bad");done(ok)})};nx()}
+function authView(){let reg=true;$("nav").hidden=true;$("#hu").innerHTML="";$("#v").onclick=null;
+ $("#v").innerHTML=`<div class="card"><h2 id="at">Ro‘yxatdan o‘tish</h2><input type="text" id="nm" placeholder="Ism va familiya" autocomplete="name"><input type="text" id="ph" inputmode="tel" placeholder="Telefon raqam (+998...)" autocomplete="tel"><input type="password" id="pw" placeholder="Parol (kamida 6 belgi)" autocomplete="current-password"><p id="er" class="err"></p><button class="btn" id="gb2">Ro‘yxatdan o‘tish</button> <button class="btn alt" id="sw">Kirish</button></div>`;
+ $("#sw").onclick=()=>{reg=!reg;$("#at").textContent=reg?"Ro‘yxatdan o‘tish":"Kirish";$("#gb2").textContent=reg?"Ro‘yxatdan o‘tish":"Kirish";$("#sw").textContent=reg?"Kirish":"Ro‘yxatdan o‘tish";$("#nm").style.display=reg?"":"none"};
+ $("#gb2").onclick=async()=>{const nm=$("#nm").value.trim(),d=$("#ph").value.replace(/\D/g,""),pw=$("#pw").value,er=$("#er");er.textContent="";
+  if(d.length<9||pw.length<6||(reg&&!nm)){er.textContent="Ism, telefon raqam va parol (kamida 6 belgi) kerak.";return}
+  const email=`p${d}@wordboost.app`;
+  const r=reg?await sb.auth.signUp({email,password:pw,options:{data:{full_name:nm,phone:d}}}):await sb.auth.signInWithPassword({email,password:pw});
+  if(r.error){const m=r.error.message;er.textContent=/already/i.test(m)?"Bu raqam ro‘yxatdan o‘tgan. Kirish tugmasini bosing.":/Invalid login/i.test(m)?"Raqam yoki parol noto‘g‘ri.":m;return}
+  if(!r.data.session){er.textContent="Ro‘yxat yaratildi, lekin email tasdiqlash yoqilgan. Supabase’da Confirm email ni o‘chiring.";return}
+  start(r.data.session.user)};
+}
+async function start(u){me=u;
+ const [pr,rm,ar]=await Promise.all([sb.from("profiles").select("full_name,role").eq("id",u.id).single(),sb.from("wb_progress").select("data").eq("user_id",u.id).maybeSingle(),sb.from("wb_articles").select("id,day,data")]);
+ prof=pr.data||{full_name:"",role:"student"};
+ let loc={};try{loc=JSON.parse(localStorage.getItem("wb_"+u.id)||"{}")}catch(e){}
+ S=Object.assign({arts:[],box:{},comp:{},p:{}},loc,rm.data?rm.data.data:{});
+ REM=(ar.data||[]).map(r=>Object.assign({id:r.id,day:r.day},r.data));
+ $("#hu").innerHTML=`<button class="btn alt sm" id="lo">Chiqish</button>`;
+ $("#lo").onclick=async()=>{await sb.auth.signOut();location.reload()};
+ const nv=$("nav");nv.hidden=false;
+ if(prof.role==="teacher"&&!nv.querySelector('[data-go="prog"]'))nv.insertAdjacentHTML("beforeend",'<button data-go="prog"><span>📊</span>Progress</button>');
+ go("art")}
+async function push(){const B=Object.values(S.box);
+ await sb.from("wb_progress").upsert({user_id:me.id,data:{box:S.box,p:S.p,comp:S.comp},words_added:B.length,words_active:B.filter(act).length,stages_done:ARTS().reduce((n,a)=>n+nDone(a.id),0),updated_at:new Date().toISOString()})}
+async function prog(){tab="prog";$("#v").innerHTML='<p class="mut">Yuklanmoqda...</p>';
+ const [a,b]=await Promise.all([sb.from("wb_progress").select("words_added,words_active,stages_done,updated_at,profiles(full_name,phone)"),sb.from("profiles").select("id",{count:"exact",head:true}).eq("role","student")]);
+ const L=(a.data||[]).slice().sort((x,y)=>y.words_active-x.words_active||y.stages_done-x.stages_done),fd=d=>new Date(d).toLocaleDateString("en-CA"),td=fd(new Date());
+ const tw=L.reduce((n,x)=>n+x.words_active,0),ta=L.filter(x=>fd(x.updated_at)===td).length,md=["🥇","🥈","🥉"];
+ $("#v").innerHTML=`<h2>Progress</h2><div class="stats"><div class="stat"><b>${b.count||0}</b>o‘quvchi</div><div class="stat"><b>${ta}</b>bugun faol</div><div class="stat"><b>${tw}</b>faol so‘zlar</div></div>
+ <h3>Reyting</h3>${L.map((x,i)=>`<div class="card item"><div><h3>${md[i]||i+1+"."} ${esc(x.profiles?.full_name||"Ism yo‘q")}</h3><p class="mut">${esc(x.profiles?.phone||"")} · oxirgi faollik: ${fd(x.updated_at)}</p></div><div style="text-align:right"><b>${x.words_active}</b> faol<br><span class="mut">${x.words_added} so‘z · ${x.stages_done} bosqich</span></div></div>`).join("")||'<p class="mut">Hali o‘quvchi faolligi yo‘q.</p>'}`}
+sb.auth.getSession().then(({data})=>data.session?start(data.session.user):authView());
+</script>
+</body>
+</html>
