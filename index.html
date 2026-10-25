@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>WordBoost</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f3f6f8;--ink:#12263a;--mut:#5b6b7e;--card:#fff;--line:#d8e0e8;--acc:#0f766e;--acc2:#f97316;--ok:#1f8f4e;--bad:#c23b2a;--hl:#ffe9a8;--hl2:#cdeee9;
+:root{--bg:#f3ebdd;--ink:#2d2c4a;--mut:#6e5a49;--card:#fbf7ef;--line:#d9c3a6;--acc:#710927;--acc2:#b58c4f;--ok:#2f7d4f;--bad:#b3261e;--hl:#ecd6a4;--hl2:#dcdbea;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1a22;--ink:#e8f0f5;--mut:#9db0c0;--card:#14262f;--line:#27404e;--acc:#2dd4bf;--acc2:#fb923c;--hl:#5a4a12;--hl2:#12504a}}
-:root[data-theme="dark"]{--bg:#0c1a22;--ink:#e8f0f5;--mut:#9db0c0;--card:#14262f;--line:#27404e;--acc:#2dd4bf;--acc2:#fb923c;--hl:#5a4a12;--hl2:#12504a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1b30;--ink:#f1e6d2;--mut:#bfab90;--card:#2d2c4a;--line:#47456b;--acc:#b58c4f;--acc2:#d9708a;--hl:#5d4b2b;--hl2:#3e3c66}}
+:root[data-theme="dark"]{--bg:#1d1b30;--ink:#f1e6d2;--mut:#bfab90;--card:#2d2c4a;--line:#47456b;--acc:#b58c4f;--acc2:#d9708a;--hl:#5d4b2b;--hl2:#3e3c66}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Sora,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
@@ -63,6 +63,12 @@ nav[hidden]{display:none}
 #fa{width:100%;background:var(--bg);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;font:inherit}
 details.card summary{cursor:pointer;font-weight:600}details .chips{margin:10px 0 0}
 .foot{text-align:center;color:var(--mut);font-size:.82rem;margin:24px 0 0}
+h1,h2,h3,.big,.flash,.sn{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif}
+h1{font-size:2.1rem;font-style:italic;font-weight:700;color:var(--acc)}
+h2{font-size:1.55rem;font-weight:700}h3{font-size:1.25rem;font-weight:700}
+.big{font-size:2.3rem}.flash{font-size:2rem}
+.card{box-shadow:0 1px 0 rgba(113,9,39,.06)}
+.chip{background:var(--bg)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
@@ -197,7 +203,7 @@ function revise(){tab="box";const q=shuffle(dueList()).slice(0,20);let i=0,ok=0,
   $("#sh2").onclick=()=>{$("#fb").innerHTML=`Javob: <b>${esc(x.w)}</b>`;fin(false)};
   $("#ti").onkeydown=e=>{if(e.key==="Enter"&&!$("#ck").disabled)$("#ck").click()}};nx()}
 const GN=["Flashcard","Ma’noni toping","Multiple choice","So‘zni yozing","Gap tuzing"];
-const GC=["#2b3ea8,#4a5df0","#0e7490,#22b8cf","#15803d,#4ade80","#c2410c,#fb923c","#be185d,#f472b6"];
+const GC=["#710927,#a3203f","#92643e,#b58c4f","#2d2c4a,#55507f","#710927,#92643e","#2d2c4a,#710927"];
 function games(a){tab="art";const W=wordsOf(a.id),n=GN.map((_,i)=>W.filter(x=>!gd(x)[i]).length);
  $("#v").innerHTML=`${hd("O‘yinlar")}<p class="mut">${W.length} ta so‘z. O‘yinlarni xohlagan tartibda o‘ynang. Bajarilganlari saqlanadi, xohlasangiz takrorlashingiz mumkin.</p><div class="gg">${GN.map((g,i)=>`<button class="gc" style="background:linear-gradient(135deg,${GC[i]})" data-game="${i}"><b>${n[i]?"":"✅ "}${i+1}. ${g}</b><span>${n[i]?n[i]+" ta so‘z qoldi":"Bajarilgan · takrorlash"}</span></button>`).join("")}</div>`}
 function gFlash(q){let i=0;
@@ -268,7 +274,10 @@ function authView(){let reg=true;$("nav").hidden=true;$("#hu").innerHTML="";$("#
   rem=$("#rem").checked;const email=`p${d}@wordboost.app`;
   const r=reg?await sb.auth.signUp({email,password:pw,options:{data:{full_name:nm,phone:d}}}):await sb.auth.signInWithPassword({email,password:pw});
   if(r.error){const m=r.error.message;er.textContent=/already/i.test(m)?"Bu raqam ro‘yxatdan o‘tgan. Kirish tugmasini bosing.":/Invalid login/i.test(m)?"Raqam yoki parol noto‘g‘ri.":m;return}
-  if(!r.data.session){er.textContent="Ro‘yxat yaratildi, lekin email tasdiqlash yoqilgan. Supabase’da Confirm email ni o‘chiring.";return}
+  if(!r.data.session){
+   const r2=reg?await sb.auth.signInWithPassword({email,password:pw}):null;
+   if(r2&&r2.data&&r2.data.session){localStorage.setItem("wb_seen","1");start(r2.data.session.user);return}
+   er.textContent=r2&&r2.error&&/not confirmed/i.test(r2.error.message)?"Email tasdiqlash yoqilgan. Supabase’da Confirm email ni o‘chiring.":"Bu raqam avval ro‘yxatdan o‘tgan bo‘lishi mumkin. Kirish tugmasini bosib, parolingizni kiriting.";return}
   localStorage.setItem("wb_seen","1");start(r.data.session.user)};
 }
 async function start(u){me=u;
