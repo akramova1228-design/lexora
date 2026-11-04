@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Writing · Task 1 Trends · WordBoost</title>
+<style>
+:root{--bg:#eceff5;--card:#fff;--ink:#16203a;--mut:#667089;--pri:#2747d6;--hi:#ffd23f;--ok:#17855a;--bad:#c93c3c;--line:#d9deea;--grid:#e6ebf5}
+@media(prefers-color-scheme:dark){:root{--bg:#10131c;--card:#192033;--ink:#e9edf8;--mut:#9aa5c2;--pri:#8aa0ff;--hi:#ffd23f;--ok:#4cc38a;--bad:#ff8080;--line:#2b3550;--grid:#222c45}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+.crumb{margin:0;color:var(--mut);font-size:14px}
+h1{margin:4px 0 14px;font:700 28px/1.15 Georgia,"Times New Roman",serif}
+h2{margin:0 0 4px;font:700 20px Georgia,serif}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.chips button,.btns button,.nav button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer}
+.chips button.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.chips .sep{flex-basis:100%;color:var(--mut);font-size:13px;margin-top:4px}
+.chips button:focus-visible,.btns button:focus-visible,select:focus-visible,textarea:focus-visible,.nav button:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.hint{color:var(--mut);margin:2px 0 12px;font-size:15px}
+.nav{display:flex;align-items:center;gap:12px;margin:6px 0 12px}
+.grid{display:grid;gap:14px}
+@media(min-width:800px){.grid{grid-template-columns:5fr 6fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+#gcard{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px;background-color:var(--card)}
+#gcard h2{font-size:18px}
+#gcard svg{width:100%;height:auto;display:block;margin-top:6px}
+.frame{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 6px;margin:12px 0}
+.fx{padding-bottom:9px}
+.slot{display:flex;flex-direction:column;font-size:12px;color:var(--mut)}
+select{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1.5px dashed var(--line);border-radius:8px;padding:7px 6px;max-width:100%}
+select.ok{border:2px solid var(--ok)}
+select.no{border:2px solid var(--bad)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btns .pri{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+#msg{min-height:24px;margin:12px 0 0;font-weight:600}
+.model{background:var(--bg);border-left:4px solid var(--hi);padding:8px 12px;border-radius:6px;margin:8px 0;font-weight:500}
+textarea{width:100%;min-height:90px;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:10px;resize:vertical}
+#own{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+#own ul{list-style:none;padding:0;margin:8px 0}
+#own li.y{color:var(--ok)}#own li.n{color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="crumb">Writing › Task 1 › Trends</p>
+  <h1>Trend sentences</h1>
+  <div class="chips" id="shapes"></div>
+  <div class="chips" id="bands"></div>
+  <p class="hint" id="hint"></p>
+  <div class="nav"><button id="prev" aria-label="Previous graph">←</button><b id="cnt"></b><button id="next" aria-label="Next graph">→</button></div>
+  <div class="grid">
+    <div class="card" id="gcard"></div>
+    <div class="card">
+      <h2>Build the sentence</h2>
+      <p class="hint">Each dropdown is one slot of the sentence.</p>
+      <div class="frame" id="frame"></div>
+      <div class="btns"><button class="pri" id="chk">Check</button><button id="mod">Show model</button><button id="nx">Next graph →</button></div>
+      <p id="msg" role="status"></p>
+      <div id="modelbox"></div>
+      <div id="own" hidden>
+        <h2>Now write your own sentence</h2>
+        <p class="hint">Describe the same graph in your own words.</p>
+        <textarea id="txt" placeholder="Write one sentence about the graph…"></textarea>
+        <div class="btns" style="margin-top:8px"><button class="pri" id="chk2">Check my sentence</button></div>
+        <ul id="list"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* ===== LOGIC ===== */
+const rnd=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const hash=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))|0,7);
+const shuf=(a,R)=>a.map(x=>[R(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+
+// 16 trend shapes. 15 graphs each (15 different topics) = 240 graphs
+const SH=[['up','↗ Up',['up']],['down','↘ Down',['down']],['level','→ Level out',['level']],['fluct','〰 Fluctuate',['fluct']],
+['up-down','Up, then down',['up','down']],['down-up','Down, then up',['down','up']],['up-up','Up, then up more steeply',['up','up2']],['down-down','Down, then down further',['down','down2']],
+['up-level','Up, then levels off',['up','level']],['down-level','Down, then levels off',['down','level']],['flat-up','Flat, then up',['level','up']],['flat-down','Flat, then down',['level','down']],
+['up-fluct','Up, then fluctuates',['up','fluct']],['down-fluct','Down, then fluctuates',['down','fluct']],['fluct-up','Fluctuates, then up',['fluct','up']],['fluct-down','Fluctuates, then down',['fluct','down']]];
+
+// s = subject (lower case), u = unit, lo/hi = value range, y = first year, st = step between the 6 years
+const TOP=[
+{s:'car sales',u:'thousand units',lo:30,hi:90,y:1960,st:10},
+{s:'the number of international students',u:'thousand',lo:20,hi:120,y:2000,st:4},
+{s:'electricity consumption',u:'billion kWh',lo:40,hi:160,y:1990,st:6},
+{s:'the unemployment rate',u:'%',lo:4,hi:16,y:2005,st:3},
+{s:'coffee consumption per person',u:'kilograms',lo:3,hi:11,y:1980,st:8},
+{s:'the proportion of recycled household waste',u:'%',lo:10,hi:60,y:1995,st:5},
+{s:'the population of the town',u:'thousand people',lo:20,hi:80,y:1950,st:10},
+{s:'the number of museum visitors',u:'thousand',lo:100,hi:400,y:2010,st:2},
+{s:'broadband subscriptions',u:'million',lo:5,hi:45,y:2002,st:4},
+{s:'wheat production',u:'million tonnes',lo:20,hi:80,y:1970,st:8},
+{s:'water usage',u:'million litres',lo:150,hi:450,y:1985,st:6},
+{s:'smartphone ownership',u:'%',lo:10,hi:90,y:2008,st:3},
+{s:'cinema attendance',u:'million visits',lo:30,hi:110,y:1990,st:5},
+{s:'bicycle sales',u:'thousand units',lo:15,hi:75,y:2000,st:4},
+{s:'average house prices',u:'thousand dollars',lo:90,hi:290,y:1975,st:9}];
+
+const VB={up:['rose','increased','climbed','grew'],down:['fell','declined','dropped','decreased'],level:['remained stable','stayed constant','remained steady'],after:['levelled off','stabilised','plateaued'],fluct:['fluctuated','varied']};
+const VA={up:{g:['rose gradually','increased steadily','grew slowly'],s:['rose sharply','increased dramatically','climbed rapidly']},down:{g:['fell gradually','declined steadily','dropped slightly'],s:['fell sharply','declined dramatically','dropped rapidly']},level:['remained relatively stable','stayed almost constant'],after:['levelled off','stabilised'],fluct:['fluctuated erratically','varied considerably']};
+
+// Generates normalised (0..1) values for 6 time points
+function gen(moves,R){
+  const r=(a,b)=>a+(b-a)*R(), key=moves.join(','); let a,segs;
+  switch(key){
+    case'up':a=r(.1,.4);segs=[{ty:'up',b:Math.min(.95,a+r(.3,.8))}];break;
+    case'down':a=r(.6,.95);segs=[{ty:'down',b:Math.max(.05,a-r(.3,.8))}];break;
+    case'level':a=r(.35,.7);segs=[{ty:'level'}];break;
+    case'fluct':a=.5;segs=[{ty:'fluct',amp:r(.2,.3)}];break;
+    case'up,down':a=r(.15,.35);segs=[{ty:'up',b:r(.7,.95)},{ty:'down',b:r(.1,.3)}];break;
+    case'down,up':a=r(.7,.9);segs=[{ty:'down',b:r(.1,.3)},{ty:'up',b:r(.65,.95)}];break;
+    case'up,up2':a=r(.05,.15);segs=[{ty:'up',b:a+r(.2,.25)},{ty:'up',b:.95}];break;
+    case'down,down2':a=.92;segs=[{ty:'down',b:a-r(.2,.25)},{ty:'down',b:.05}];break;
+    case'up,level':a=r(.1,.3);segs=[{ty:'up',b:r(.65,.9)},{ty:'level'}];break;
+    case'down,level':a=r(.7,.9);segs=[{ty:'down',b:r(.15,.3)},{ty:'level'}];break;
+    case'level,up':a=r(.15,.35);segs=[{ty:'level'},{ty:'up',b:r(.7,.95)}];break;
+    case'level,down':a=r(.7,.9);segs=[{ty:'level'},{ty:'down',b:r(.1,.3)}];break;
+    case'up,fluct':a=r(.1,.25);segs=[{ty:'up',b:r(.6,.75)},{ty:'fluct',amp:r(.1,.16)}];break;
+    case'down,fluct':a=r(.75,.9);segs=[{ty:'down',b:r(.3,.45)},{ty:'fluct',amp:r(.1,.16)}];break;
+    case'fluct,up':a=r(.25,.4);segs=[{ty:'fluct',amp:.1},{ty:'up',b:r(.8,.95)}];break;
+    case'fluct,down':a=r(.6,.75);segs=[{ty:'fluct',amp:.1},{ty:'down',b:r(.1,.25)}];break;
+  }
+  const two=segs.length>1,t=two?(R()<.5?2:3):5,bn=two?[[0,t],[t,5]]:[[0,5]];
+  let v=[],cur=a;
+  segs.forEach((sg,si)=>{
+    const [i0,i1]=bn[si],n=i1-i0+1,seg=[];
+    for(let j=0;j<n;j++){
+      if(sg.ty==='up'||sg.ty==='down')seg.push(j===0?cur:j===n-1?sg.b:cur+(sg.b-cur)*j/(n-1)+(R()-.5)*.03);
+      else if(sg.ty==='level')seg.push(j===0||j===n-1?cur:cur+(R()-.5)*.03);
+      else seg.push(j===0&&si>0?cur:cur+(j%2?1:-1)*sg.amp*(.7+.3*R()));
+    }
+    cur=seg[n-1];v=v.concat(si?seg.slice(1):seg);
+  });
+  return{v:v.map(x=>Math.max(.03,Math.min(.97,x))),t};
+}
+
+function graph(sid,i){
+  const si=SH.findIndex(s=>s[0]===sid),sh=SH[si],T=TOP[(i+si*4)%15],R=rnd(hash(sid)*131+i*977+1),d=gen(sh[2],R);
+  return{T,v:d.v,tn:d.t,moves:sh[2],vals:d.v.map(x=>Math.round(T.lo+x*(T.hi-T.lo))),years:[0,1,2,3,4,5].map(k=>T.y+k*T.st)};
+}
+
+function pp(ty,a,b,yr,first,u){
+  const U=u==='%'?'':' '+u,f=x=>u==='%'?x+'%':x;
+  if(ty==='up'||ty==='down')return first?`from ${f(a)} to ${f(b)}${U}`+(yr?` in ${yr}`:''):`to ${f(b)}${U}`+(yr?` by ${yr}`:'');
+  if(ty==='level')return`at around ${f(a)}${U}`+(yr?(first?` until ${yr}`:` by ${yr}`):'');
+  return`within a range of ${f(a)} to ${f(b)}${U}`+(yr?` until ${yr}`:'');
+}
+function wrongPP(ty,a,b,yr,first,u,years,R){
+  const P=(t,x,y,z=yr)=>pp(t,x,y,z,first,u),ok=P(ty,a,b);let w=[];
+  const oy=yr?shuf(years.filter(y=>y!==yr),R)[0]:null;
+  if(ty==='up'||ty==='down')w=[P(ty,b,a),oy?P(ty,a,b,oy):P(ty,a,Math.round(b*.6+a*.2)),P('level',a,0)];
+  else if(ty==='level')w=[P('up',a,Math.round(a*1.5)),P('level',Math.round(a*1.5),0),P('fluct',a,Math.round(a*1.4))];
+  else w=[P('up',a,b),P('level',Math.round((a+b)/2),0),P('fluct',a,Math.round(b*1.4))];
+  return[...new Set(w)].filter(x=>x!==ok).slice(0,3);
+}
+
+function verbSlot(m,mi,band,delta,R){
+  const ty=m.replace('2',''),o=ty==='up'?'down':'up';
+  if(band===6){
+    const key=ty==='level'&&mi>0?'after':ty,pool=Object.keys(VB).filter(k=>k!==key&&!(key==='level'&&k==='after')&&!(key==='after'&&k==='level'));
+    return[shuf(VB[key],R).slice(0,2),shuf(pool,R).slice(0,2).map(k=>VB[k][0])];
+  }
+  if(ty==='up'||ty==='down'){
+    if(m.endsWith('2'))return[[`${VB[ty][0]} more sharply`,`${VB[ty][1]} even more rapidly`],[`${VB[ty][0]} more slowly`,`${VB[o][0]} more sharply`]];
+    const mg=delta>=.5?'s':'g',og=mg==='s'?'g':'s';
+    return[shuf(VA[ty][mg],R).slice(0,2),[VA[ty][og][0],VA[o][mg][0],VA.level[0]]];
+  }
+  const key=ty==='level'&&mi>0?'after':ty;
+  return[VA[key],[VA.up.s[0],VA.down.g[0]]];
+}
+
+function tailOpts(last,c,y,F){
+  if(last==='up'||last==='up2')return[[`reaching a high of ${F(c)} in ${y}`,`peaking at ${F(c)} in ${y}`],[`hitting a low of ${F(c)} in ${y}`,`bottoming out at ${F(c)} in ${y}`]];
+  if(last==='down'||last==='down2')return[[`hitting a low of ${F(c)} in ${y}`,`bottoming out at ${F(c)} in ${y}`],[`reaching a high of ${F(c)} in ${y}`,`peaking at ${F(c)} in ${y}`]];
+  if(last==='level')return[['with virtually no change','with only minor variation'],['with a dramatic surge','with a steep drop']];
+  return[['with frequent ups and downs','with no clear direction'],['with a steady upward trend','with a sharp decline']];
+}
+
+function makeSlots(g,band,R){
+  const{T,vals,years,moves,v}=g,two=moves.length>1,bn=two?[[0,g.tn],[g.tn,5]]:[[0,5]],S=[];
+  const U=T.u==='%'?'':' '+T.u,F=x=>(T.u==='%'?x+'%':x)+U,op=band>6;
+  const add=(label,ok,wr,x={})=>S.push(Object.assign({label,ok,opts:shuf(ok.concat(wr),R)},x));
+  if(op)add('opener',band===7?['Overall,','In general,']:['Over the period shown,','Throughout the period,'],band===7?['In conclusion,','However,']:['In conclusion,','For example,']);
+  const C=x=>op?x:cap(x);
+  add('subject',[C(T.s)],['this graph','the chart','the timeline'].map(C));
+  moves.forEach((m,mi)=>{
+    const[i0,i1]=bn[mi],A=vals[i0],B=vals[i1],seg=vals.slice(i0,i1+1),ty=m.replace('2','');
+    const a=ty==='level'?Math.round(seg.reduce((p,c)=>p+c)/seg.length):ty==='fluct'?Math.min(...seg):A;
+    const b=ty==='fluct'?Math.max(...seg):B,yr=two?(mi?years[5]:years[g.tn]):null,first=mi===0;
+    if(mi)add('linker',band===6?['and then','and later']:['before it','after which it'],['because','although'],{pre:','});
+    const[vo,vw]=verbSlot(m,mi,band,Math.abs(v[i1]-v[i0]),R);add('verb',vo,vw);
+    const okp=pp(ty,a,b,yr,first,T.u);
+    add('figures',[okp],wrongPP(ty,a,b,yr,first,T.u,years,R),{post:two?'':` between ${years[0]} and ${years[5]}`});
+  });
+  if(band===8){const l=moves[moves.length-1],[o,w]=tailOpts(l,vals[5],years[5],F);add('ending',o,w,{pre:','});}
+  S[S.length-1].post=(S[S.length-1].post||'')+'.';
+  return S;
+}
+const modelText=S=>{let o='';S.forEach((s,i)=>{o+=(s.pre?s.pre+' ':i?' ':'')+s.ok[0]+(s.post||'')});return o[0].toUpperCase()+o.slice(1)};
+
+function evalText(txt,g){
+  const t=txt.trim(),w=t.split(/\s+/).filter(Boolean).length;
+  const hasNum=g.vals.some(n=>new RegExp('(^|\\D)'+n+'(\\D|$)').test(t));
+  return[[w>=10,`At least 10 words (you have ${w})`],
+    [/(rose|increas|climb|grew|grow|fell|declin|dropp|decreas|remain|stable|constant|steady|level|plateau|fluctuat|vari|peak|recover|rebound|surge)/i.test(t),'A trend verb (rose, fell, fluctuated…)'],
+    [hasNum,'A figure from the graph'],
+    [g.years.some(y=>t.includes(String(y))),'A year from the graph'],
+    [/^[A-Z]/.test(t)&&/\.$/.test(t),'Capital letter and full stop']];
+}
+
+/*UI*/
+const $=id=>document.getElementById(id);
+const HINTS={6:'One clear sentence: subject + verb + figures.',7:'Add an opener and a precise verb with an adverb.',8:'Add an opener, precise verbs and a closing phrase with the key figure.'};
+const S={shape:'up',band:6,i:0,g:null,slots:[]};
+
+// Hook for your Supabase table (e.g. writing_progress): call it when a student solves a graph
+async function saveProgress(info){ /* TODO: await supabase.from('writing_progress').insert(info) */ }
+
+function renderChips(){
+  $('shapes').innerHTML='<span class="sep">One movement</span>'+SH.map((s,k)=>(k===4?'<span class="sep">Two movements</span>':'')+`<button data-s="${s[0]}" class="${s[0]===S.shape?'on':''}">${s[1]}</button>`).join('');
+  $('bands').innerHTML=[6,7,8].map(b=>`<button data-b="${b}" class="${b===S.band?'on':''}">Band ${b}.0</button>`).join('');
+  $('hint').textContent=HINTS[S.band]+(S.g.moves.length>1?' Link the two movements.':'');
+}
+function chart(g){
+  const W=330,H=215,l=40,r=14,tp=18,b=30,mx=Math.max(...g.vals),s=mx>200?50:mx>80?20:mx>30?10:5,top=Math.ceil(mx*1.15/s)*s;
+  const X=i=>l+i*(W-l-r)/5,Y=v=>tp+(H-tp-b)*(1-v/top);
+  let o=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Line graph of ${g.T.s}">`;
+  for(let k=0;k<=4;k++){const v=top*k/4;o+=`<line x1="${l}" x2="${W-r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${l-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${+v.toFixed(1)}</text>`}
+  g.years.forEach((y,i)=>o+=`<text x="${X(i)}" y="${H-10}" text-anchor="middle" font-size="11" fill="var(--mut)">${y}</text>`);
+  o+=`<polyline fill="none" stroke="var(--pri)" stroke-width="2.5" stroke-linejoin="round" points="${g.vals.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/>`;
+  g.vals.forEach((v,i)=>o+=`<circle cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--pri)"/><text x="${X(i)}" y="${Y(v)-9}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">${v}</text>`);
+  return o+'</svg>';
+}
+function render(){
+  const g=S.g=graph(S.shape,S.i);
+  S.slots=makeSlots(g,S.band,rnd(hash(S.shape)+S.band*77+S.i*13+5));
+  $('cnt').textContent=`${S.i+1} / 15`;
+  const cap1=g.T.s[0].toUpperCase()+g.T.s.slice(1);
+  $('gcard').innerHTML=`<h2>${cap1}</h2><div class="hint" style="margin:0">${g.T.u==='%'?'percentage':g.T.u} · ${g.years[0]}–${g.years[5]}</div>${chart(g)}`;
+  $('frame').innerHTML=S.slots.map((s,k)=>(s.pre?`<span class="fx">${s.pre}</span>`:'')+`<label class="slot">${s.label}<select data-k="${k}"><option value="">—</option>${s.opts.map(o=>`<option>${o}</option>`).join('')}</select></label>`+(s.post?`<span class="fx">${s.post}</span>`:'')).join('');
+  $('msg').textContent='';$('msg').style.color='';$('modelbox').innerHTML='';$('own').hidden=true;$('txt').value='';$('list').innerHTML='';
+  renderChips();
+}
+function check(){
+  let bad=0;
+  document.querySelectorAll('#frame select').forEach(sel=>{
+    const ok=S.slots[sel.dataset.k].ok.includes(sel.value);sel.className=ok?'ok':'no';if(!ok)bad++;
+  });
+  const m=$('msg');
+  if(bad){m.style.color='var(--bad)';m.textContent=`${bad} slot${bad>1?'s':''} need another look. Check the graph again.`}
+  else{m.style.color='var(--ok)';m.textContent='Correct!';solved()}
+}
+function solved(){
+  const sel=[...document.querySelectorAll('#frame select')];
+  $('modelbox').innerHTML=`<div class="model">${sel.map((s,k)=>(S.slots[k].pre?S.slots[k].pre+' ':k?' ':'')+s.value+(S.slots[k].post||'')).join('').replace(/^./,c=>c.toUpperCase())}</div>`;
+  $('own').hidden=false;
+  saveProgress({shape:S.shape,band:S.band,graph:S.i});
+}
+function showModel(){
+  document.querySelectorAll('#frame select').forEach((sel,k)=>{sel.value=S.slots[k].ok[0];sel.className='ok'});
+  $('msg').textContent='';$('modelbox').innerHTML=`<div class="model">${modelText(S.slots)}</div>`;$('own').hidden=false;
+}
+const next=d=>{S.i=(S.i+d+15)%15;render()};
+$('shapes').onclick=e=>{const b=e.target.closest('button');if(b){S.shape=b.dataset.s;S.i=0;render()}};
+$('bands').onclick=e=>{const b=e.target.closest('button');if(b){S.band=+b.dataset.b;render()}};
+$('prev').onclick=()=>next(-1);$('next').onclick=()=>next(1);$('nx').onclick=()=>next(1);
+$('chk').onclick=check;$('mod').onclick=showModel;
+$('chk2').onclick=()=>{$('list').innerHTML=evalText($('txt').value,S.g).map(([ok,t])=>`<li class="${ok?'y':'n'}">${ok?'✓':'✗'} ${t}</li>`).join('')};
+render();
+</script>
+</body>
+</html>
