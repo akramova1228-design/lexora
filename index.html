@@ -80,10 +80,11 @@ h2{font-size:1.55rem;font-weight:700}h3{font-size:1.25rem;font-weight:700}
 .slot select.good{border-color:var(--ok)}.slot select.bad{border-color:var(--bad)}
 .ft{font-size:.95rem;font-weight:600}
 svg.ch{width:100%;height:auto;display:block}svg.ch .ax{stroke:var(--line)}svg.ch .tx{fill:var(--mut);font-size:10px}svg.ch .tt{fill:var(--ink);font-size:14px;font-weight:700}svg.ch .ln{fill:none;stroke:var(--acc);stroke-width:2.5}svg.ch .pt{fill:var(--acc)}
+.lnk{background:none;border:0;color:var(--mut);text-decoration:underline;font:inherit;cursor:pointer;padding:0}
 </style>
 </head>
 <body>
-<div class="wrap"><div class="hd" style="justify-content:space-between"><h1>WordBoost</h1><span id="hu"></span></div><div id="v"></div><p class="foot">Platforma muallifi: Muxlisa Inomova</p></div>
+<div class="wrap"><div class="hd" style="justify-content:space-between"><h1>WordBoost</h1><span id="hu"></span></div><div id="v"></div><p class="foot">Platforma muallifi: Muxlisa Inomova · v7 · <button class="lnk" data-teacher="1" id="tl">ustoz</button> · <span id="sy">bulut: …</span></p></div>
 <div id="sh" hidden></div>
 <nav hidden><button data-go="art"><span>📖</span>Maqolalar</button><button data-go="box"><span>🧺</span>Vocab box</button><button data-go="writing"><span>✍️</span>Writing</button><button data-go="mine"><span>📝</span>Matnlarim</button><button data-go="rank"><span>🏆</span>Reyting</button></nav>
 <script>
@@ -117,11 +118,16 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let rem=false;const ST={getItem:k=>sessionStorage.getItem(k)??localStorage.getItem(k),setItem:(k,v)=>(rem||localStorage.getItem(k)!==null?localStorage:sessionStorage).setItem(k,v),removeItem:k=>{sessionStorage.removeItem(k);localStorage.removeItem(k)}};
 function makeSB(url,key,ST){
+ const bases=[];if(/^https?:$/.test(location.protocol))bases.push(location.origin+"/sb");bases.push(url);let bi=0;
+ const F=async(path,o)=>{let last;const dg=[];for(let k=0;k<bases.length;k++){const i=(bi+k)%bases.length,nm=bases[i]===url?"to‘g‘ridan":"proksi";const ac=new AbortController(),tt=setTimeout(()=>ac.abort(),9000);try{const r=await fetch(bases[i]+path,Object.assign({},o,{signal:ac.signal}));clearTimeout(tt);
+  if(i===0&&bases.length>1&&(r.status===404||r.status>=500)&&/html|text\/plain/.test(r.headers.get("content-type")||"")){dg.push(nm+": "+r.status);continue}bi=i;return r}catch(e){clearTimeout(tt);last=e;dg.push(nm+": "+((e&&e.message)||"xato"))}}
+  throw Object.assign(last||new Error("net"),{dg:dg.join("; ")})};
+ const NET="Internetga ulanib bo‘lmadi. Wi-Fi yoki mobil internetni almashtirib ko‘ring.";
  const SK="wb-auth",load=()=>{try{return JSON.parse(ST.getItem(SK))}catch(e){return null}};
  const hdr=(tok,x)=>Object.assign({apikey:key,"Content-Type":"application/json",Authorization:"Bearer "+(tok||key)},x||{});
  const msg=(j,r)=>(j&&(j.msg||j.error_description||j.message||j.error))||r.statusText||"Xatolik";
  const fixS=j=>({access_token:j.access_token,refresh_token:j.refresh_token,expires_at:Math.floor(Date.now()/1000)+(j.expires_in||3600),user:j.user});
- const call=async(path,body,tok)=>{try{const r=await fetch(url+path,{method:"POST",headers:hdr(tok),body:JSON.stringify(body||{})});const j=await r.json().catch(()=>({}));return r.ok?{data:j,error:null}:{data:{},error:{message:msg(j,r)}}}catch(e){return{data:{},error:{message:"Internetga ulanib bo‘lmadi"}}}};
+ const call=async(path,body,tok)=>{try{const r=await F(path,{method:"POST",headers:hdr(tok),body:JSON.stringify(body||{})});const j=await r.json().catch(()=>({}));return r.ok?{data:j,error:null}:{data:{},error:{message:msg(j,r)}}}catch(e){return{data:{},error:{message:NET+(e&&e.dg?" ["+e.dg+"]":"")}}}};
  const sess=async()=>{let s=load();if(!s)return null;
   if(s.expires_at-60<Date.now()/1000){const r=await call("/auth/v1/token?grant_type=refresh_token",{refresh_token:s.refresh_token});
    if(r.error||!r.data.access_token){ST.removeItem(SK);return null}s=fixS(r.data);ST.setItem(SK,JSON.stringify(s))}
@@ -139,19 +145,19 @@ function makeSB(url,key,ST){
    o.f.forEach(x=>qs.push(x));if(o.ord)qs.push("order="+o.ord);if(o.lim)qs.push("limit="+o.lim);
    const pf=o.pref.slice();if(o.m==="POST")pf.push("return=minimal");if(o.cnt)pf.push("count="+o.cnt);
    const h=hdr(s&&s.access_token);if(pf.length)h.Prefer=pf.join(",");
-   try{const r=await fetch(url+"/rest/v1/"+t+"?"+qs.join("&"),{method:o.head?"HEAD":o.m,headers:h,body:o.body?JSON.stringify(o.body):undefined});
+   try{const r=await F("/rest/v1/"+t+"?"+qs.join("&"),{method:o.head?"HEAD":o.m,headers:h,body:o.body?JSON.stringify(o.body):undefined});
     let j=null;if(!o.head&&o.m==="GET")j=await r.json().catch(()=>null);else if(!r.ok)j=await r.json().catch(()=>null);
     if(!r.ok)return{data:null,error:{message:msg(j,r)},count:null};
     const cr=r.headers.get("content-range"),count=cr&&cr.includes("/")?parseInt(cr.split("/")[1],10):null;
     if(o.m!=="GET")return{data:null,error:null,count};
     if(o.one)return{data:(j&&j[0])||null,error:(j&&j[0])||o.one===2?null:{message:"Qator topilmadi"},count};
-    return{data:j||[],error:null,count}}catch(e){return{data:null,error:{message:"Internetga ulanib bo‘lmadi"},count:null}}};
+    return{data:j||[],error:null,count}}catch(e){return{data:null,error:{message:NET+(e&&e.dg?" ["+e.dg+"]":"")},count:null}}};
   const b={select:(c,p)=>{o.c=c||"*";if(p&&p.head)o.head=true;if(p&&p.count)o.cnt=p.count;return b},
    eq:(c,v)=>{o.f.push(c+"=eq."+encodeURIComponent(v));return b},order:(c,p)=>{o.ord=c+"."+(p&&p.ascending===false?"desc":"asc");return b},limit:n=>{o.lim=n;return b},
    insert:x=>{o.m="POST";o.body=x;return b},upsert:x=>{o.m="POST";o.body=x;o.pref.push("resolution=merge-duplicates");return b},delete:()=>{o.m="DELETE";return b},
    single:()=>{o.one=1;return b},maybeSingle:()=>{o.one=2;return b},then:(a,c)=>run().then(a,c)};
   return b};
- const rpc=async(n,a)=>{const s=await sess();try{const r=await fetch(url+"/rest/v1/rpc/"+n,{method:"POST",headers:hdr(s&&s.access_token),body:JSON.stringify(a||{})});const j=await r.json().catch(()=>null);return r.ok?{data:j,error:null}:{data:null,error:{message:msg(j,r)}}}catch(e){return{data:null,error:{message:"Internetga ulanib bo‘lmadi"}}}};
+ const rpc=async(n,a)=>{const s=await sess();try{const r=await F("/rest/v1/rpc/"+n,{method:"POST",headers:hdr(s&&s.access_token),body:JSON.stringify(a||{})});const j=await r.json().catch(()=>null);return r.ok?{data:j,error:null}:{data:null,error:{message:msg(j,r)}}}catch(e){return{data:null,error:{message:NET+(e&&e.dg?" ["+e.dg+"]":"")}}}};
  return{auth,from,rpc}}
 const sb=makeSB("https://ycbmyxvegajwzqnzabam.supabase.co","sb_publishable_netKzVpjU2tAfY59tn-3-w_ZoO1efLs",ST);
 let S={arts:[],box:{},comp:{},p:{}},tab="art",cur="",me=null,prof={role:"student"},REM=[],tm=null;
@@ -173,6 +179,7 @@ function go(t){tab=t;$("#sh").hidden=true;
 document.addEventListener("click",e=>{
  const rv=e.target.closest("[data-rev]");if(rv&&!rv.disabled)return revise();const bb=e.target.closest("[data-bt]");if(bb){bt=bb.dataset.bt;return boxv()}
  const g=e.target.closest("[data-go]");if(g)return go(g.dataset.go);
+ const tp=e.target.closest("[data-teacher]");if(tp)return teacherToggle();
  const my=e.target.closest("[data-my]");if(my)return myOpen(my.dataset.my);
  const h=e.target.closest("[data-hub]");if(h)return hub(h.dataset.hub);const sg=e.target.closest("[data-stage]");if(sg&&!sg.disabled)return [read,quiz,comp,games][+sg.dataset.stage](ARTS().find(x=>x.id===cur));const gm=e.target.closest("[data-games]");if(gm)return games(ARTS().find(x=>x.id===cur)||{id:cur,title:""});
  const q=e.target.closest("[data-game]");if(q){const i=+q.dataset.game;
@@ -208,7 +215,7 @@ function add(){tab="art";
    if(k==="GAP")return{t:"gap",q:q[1],a:q[2].toLowerCase()};
    if(k==="MCQ"&&q.length>=5)return{t:"mcq",q:q[1],o:q.slice(2,-1),a:parseInt(q[q.length-1],10)-1}}).filter(Boolean);
   const day=parseInt($("#ad1").value,10)||ARTS().length+1,id="a"+Date.now();
-  sb.from("wb_articles").insert({id,day,data:{title,text,targets,gl,qs}}).then(r=>{if(r.error)return $("#fb").textContent=r.error.message;REM.push({id,day,title,text,targets,gl,qs});go("art")})};
+  sb.rpc("wb_admin_add_article",{p_pin:sessionStorage.getItem("wb_pin")||"",p_id:id,p_day:day,p_data:{title,text,targets,gl,qs}}).then(r=>{if(r.error)return $("#fb").textContent=r.error.message;REM.push({id,day,title,text,targets,gl,qs});go("art")})};
 }
 function read(a){tab="art";const T={},G=Object.assign({},GL,a.gl||{});
  a.targets.forEach(([w,m])=>{const k=w.toLowerCase();T[k]=m;if(!S.box[k])S.box[k]={w:k,m,s:0,a:a.id,sen:[],lv:0,due:addDays(1)}});save();
@@ -317,7 +324,9 @@ function quiz(a){let i=0,sc=0;const Q=a.qs;
 const DICT=(()=>{const d={};SEED.forEach(a=>a.targets.forEach(([w,m])=>{if(/^[a-z]+$/i.test(w))d[w.toLowerCase()]=m}));return d})();
 async function trans(w){S.tc=S.tc||{};if(S.tc[w])return S.tc[w];
  try{const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);
-  const r=await fetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(w)+"&langpair=en|uz",{signal:c.signal});clearTimeout(t);
+  const qq="/get?q="+encodeURIComponent(w)+"&langpair=en|uz";let r;
+  try{if(!/^https?:$/.test(location.protocol))throw 0;r=await fetch(location.origin+"/tr"+qq,{signal:c.signal});if(!r.ok||!/json/.test(r.headers.get("content-type")||""))throw 0}catch(e){r=await fetch("https://api.mymemory.translated.net"+qq,{signal:c.signal})}
+  clearTimeout(t);
   const j=await r.json(),x=((j.responseData&&j.responseData.translatedText)||"").trim().toLowerCase();
   if(!x||/mymemory|invalid|query length/.test(x)||x===w)return null;
   S.tc[w]=x;return x}catch(e){return null}}
@@ -334,45 +343,53 @@ function myOpen(cid){const id=String(cid).replace(/^my:/,""),x=myAll().find(z=>z
  $("#v").innerHTML=`<div class="hd"><button class="btn alt sm" data-go="mine">←</button><b>${esc(x.title)}</b></div><p class="mut">So‘zni bossangiz tarjimasi chiqadi. ✔️ bilan vocab boxga qo‘shing (yashil = boxda).</p><div class="card art" id="tx">${x.text.split(/([A-Za-z’']+)/).map((q,i)=>{if(i%2===0)return esc(q);const k=q.toLowerCase();return `<span class="w${S.box[k]?" u":""}" data-w="${esc(k)}">${esc(q)}</span>`}).join("")}</div><div class="row"><button class="btn" data-games="1">🎮 O‘yinlar (${n} ta so‘z)</button><button class="btn alt" id="dl">Matnni o‘chirish</button></div>`;
  $("#v").onclick=e=>{const w=e.target.closest(".w");if(w)sheet(w.dataset.w,{},G)};
  $("#dl").onclick=()=>{if(confirm("Matn o‘chirilsinmi? Boxdagi so‘zlar qoladi.")){S.my=myAll().filter(z=>z.id!==id);save();mine()}}}
-function authView(){let reg=true;$("nav").hidden=true;$("#hu").innerHTML="";$("#v").onclick=null;
- $("#v").innerHTML=`<div class="card"><h2 id="at">Ro‘yxatdan o‘tish</h2><input type="text" id="nm" placeholder="Ism va familiya" autocomplete="name"><input type="text" id="ph" inputmode="tel" placeholder="Telefon raqam (+998...)" autocomplete="tel"><input type="password" id="pw" placeholder="Parol (kamida 6 belgi)" autocomplete="current-password"><label class="mut" style="display:block;margin:6px 0"><input type="checkbox" id="rem"> Shu qurilmada eslab qolish</label><p id="er" class="err"></p><button class="btn" id="gb2">Ro‘yxatdan o‘tish</button> <button class="btn alt" id="sw">Kirish</button></div>`;
- $("#sw").onclick=()=>{reg=!reg;$("#at").textContent=reg?"Ro‘yxatdan o‘tish":"Kirish";$("#gb2").textContent=reg?"Ro‘yxatdan o‘tish":"Kirish";$("#sw").textContent=reg?"Kirish":"Ro‘yxatdan o‘tish";$("#nm").style.display=reg?"":"none"};
- if(localStorage.getItem("wb_seen"))$("#sw").click();
- $("#gb2").onclick=async()=>{const nm=$("#nm").value.trim(),d=$("#ph").value.replace(/\D/g,""),pw=$("#pw").value,er=$("#er");er.textContent="";
-  if(d.length<9||pw.length<6||(reg&&!nm)){er.textContent="Ism, telefon raqam va parol (kamida 6 belgi) kerak.";return}
-  rem=$("#rem").checked;const email=`p${d}@wordboost.app`;
-  const r=reg?await sb.auth.signUp({email,password:pw,options:{data:{full_name:nm,phone:d}}}):await sb.auth.signInWithPassword({email,password:pw});
-  if(r.error){const m=r.error.message;er.textContent=/already/i.test(m)?"Bu raqam ro‘yxatdan o‘tgan. Kirish tugmasini bosing.":/Invalid login/i.test(m)?"Raqam yoki parol noto‘g‘ri.":m;return}
-  if(!r.data.session){
-   const r2=reg?await sb.auth.signInWithPassword({email,password:pw}):null;
-   if(r2&&r2.data&&r2.data.session){localStorage.setItem("wb_seen","1");start(r2.data.session.user);return}
-   er.textContent=r2&&r2.error&&/not confirmed/i.test(r2.error.message)?"Email tasdiqlash yoqilgan. Supabase’da Confirm email ni o‘chiring.":"Bu raqam avval ro‘yxatdan o‘tgan bo‘lishi mumkin. Kirish tugmasini bosib, parolingizni kiriting.";return}
-  localStorage.setItem("wb_seen","1");start(r.data.session.user)};
-}
-async function start(u){me=u;
- const [pr,rm,ar]=await Promise.all([sb.from("profiles").select("full_name,role").eq("id",u.id).single(),sb.from("wb_progress").select("data").eq("user_id",u.id).maybeSingle(),sb.from("wb_articles").select("id,day,data")]);
- prof=pr.data||{full_name:"",role:"student"};
- let loc={};try{loc=JSON.parse(localStorage.getItem("wb_"+u.id)||"{}")}catch(e){}
- S=Object.assign({arts:[],box:{},comp:{},p:{}},loc,rm.data?rm.data.data:{});
- REM=(ar.data||[]).map(r=>Object.assign({id:r.id,day:r.day},r.data));
- $("#hu").innerHTML=`<button class="btn alt sm" id="lo">Chiqish</button>`;
- $("#lo").onclick=async()=>{await sb.auth.signOut();location.reload()};
- const nv=$("nav");nv.hidden=false;
- if(prof.role==="teacher"&&!nv.querySelector('[data-go="prog"]'))nv.insertAdjacentHTML("beforeend",'<button data-go="prog"><span>📊</span>Progress</button>');
- go("art")}
+let ME=null;
+const rid=()=>{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();const h=()=>Math.floor((1+Math.random())*65536).toString(16).slice(1);return h()+h()+"-"+h()+"-"+h()+"-"+h()+"-"+h()+h()+h()};
+const rsec=()=>{const a=new Uint8Array(16);(window.crypto||{getRandomValues:x=>x.forEach((_,i)=>x[i]=Math.floor(Math.random()*256))}).getRandomValues(a);return Array.from(a,x=>x.toString(16).padStart(2,"0")).join("")};
+const cap=t=>t.trim().replace(/\s+/g," ").split(" ").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+const setSync=t=>{const e=$("#sy");if(e)e.textContent="bulut: "+t};
+function nameView(){$("nav").hidden=true;$("#hu").innerHTML="";$("#v").onclick=null;
+ $("#v").innerHTML=`<div class="card"><h2>Xush kelibsiz</h2><p class="mut">Ism va familiyangizni kiriting, shu bilan kirasiz. Parol kerak emas.</p><input type="text" id="fn" placeholder="Ism" autocomplete="given-name"><input type="text" id="ln" placeholder="Familiya" autocomplete="family-name"><p id="er" class="err"></p><button class="btn" id="go2">Boshlash</button></div>`;
+ const go2=()=>{const a=cap($("#fn").value),b=cap($("#ln").value);if(a.length<2||b.length<2){$("#er").textContent="Ism va familiyani to‘liq yozing.";return}
+  ME={id:rid(),secret:rsec(),name:a+" "+b};localStorage.setItem("wb_me",JSON.stringify(ME));enterApp()};
+ $("#go2").onclick=go2;$("#ln").onkeydown=e=>{if(e.key==="Enter")go2()}}
+async function enterApp(){
+ const pin=sessionStorage.getItem("wb_pin"),isT=!!pin;
+ me=isT?null:ME;prof={role:isT?"teacher":"student",full_name:isT?"Ustoz":ME.name};
+ let loc={};try{loc=JSON.parse(localStorage.getItem("wb_"+(me?me.id:"x"))||"{}")}catch(e){}
+ if(me&&!loc.box){try{loc=JSON.parse(localStorage.getItem("wb_x")||"{}")}catch(e){}}
+ S=Object.assign({arts:[],box:{},comp:{},p:{}},loc);
+ $("#hu").innerHTML=`<span class="mut" style="margin-right:8px">${esc(prof.full_name)}</span><button class="btn alt sm" id="lo">Chiqish</button>`;
+ $("#lo").onclick=()=>{if(isT){sessionStorage.removeItem("wb_pin");enterApp();return}
+  if(confirm("Chiqilsinmi? Boshqa o‘quvchi shu telefondan kira oladi.")){localStorage.removeItem("wb_me");location.reload()}};
+ const nv=$("nav");nv.hidden=false;nv.querySelectorAll('[data-go="prog"]').forEach(x=>x.remove());
+ if(isT)nv.insertAdjacentHTML("beforeend",'<button data-go="prog"><span>📊</span>Progress</button>');
+ const tl=$("#tl");if(tl)tl.textContent=isT?"ustozdan chiqish":"ustoz";
+ $("#v").onclick=null;go("art");
+ sb.from("wb_articles").select("id,day,data").then(ar=>{REM=(ar.data||[]).map(r=>Object.assign({id:r.id,day:r.day},r.data));if(tab==="art"&&!cur)arts()});
+ if(me)push()}
+async function teacherToggle(){
+ if(sessionStorage.getItem("wb_pin")){sessionStorage.removeItem("wb_pin");enterApp();return}
+ const pin=prompt("Ustoz PIN kodi:");if(!pin)return;
+ const r=await sb.rpc("wb_admin_list",{p_pin:pin.trim()});
+ if(r.error){alert(/PIN/i.test(r.error.message)?"PIN noto‘g‘ri":r.error.message);return}
+ sessionStorage.setItem("wb_pin",pin.trim());await enterApp();go("prog")}
 async function rank(){tab="rank";$("#v").innerHTML='<p class="mut">Yuklanmoqda...</p>';
  const r=await sb.rpc("wb_leaderboard"),L=r.data||[],md=["🥇","🥈","🥉"];
- if(r.error){$("#v").innerHTML=`<p class="err">${esc(r.error.message)}</p>`;return}
- $("#v").innerHTML=`<h2>Reyting</h2><p class="mut">Yodlangan so‘zlar va o‘qilgan maqolalar bo‘yicha.</p>${L.map((x,i)=>`<div class="card item"><div><h3>${md[i]||(i+1)+"."} ${esc(x.full_name||"—")}</h3><p class="mut">${x.articles_read} ta maqola o‘qigan</p></div><div style="text-align:right"><b>${x.words_active}</b><br><span class="mut">yodlangan so‘z</span></div></div>`).join("")||'<p class="mut">Hali natija yo‘q.</p>'}`}
-async function push(){const B=Object.values(S.box);
- await sb.from("wb_progress").upsert({user_id:me.id,data:{box:S.box,p:S.p,comp:S.comp,wr:S.wr||{},my:S.my||[]},words_added:B.length,articles_read:ARTS().filter(a=>P(a.id)[0]).length,words_active:B.filter(act).length,stages_done:ARTS().reduce((n,a)=>n+nDone(a.id),0),updated_at:new Date().toISOString()})}
+ if(r.error){$("#v").innerHTML=`<h2>Reyting</h2><p class="err">${esc(r.error.message)}</p>`;return}
+ $("#v").innerHTML=`<h2>Reyting</h2><p class="mut">Yodlangan so‘zlar va o‘qilgan maqolalar bo‘yicha.</p>${L.map((x,i)=>`<div class="card item"><div><h3>${md[i]||(i+1)+"."} ${esc(x.full_name||"—")}${ME&&x.full_name===ME.name?" · siz":""}</h3><p class="mut">${x.articles_read} ta maqola o‘qigan</p></div><div style="text-align:right"><b>${x.words_active}</b><br><span class="mut">yodlangan so‘z</span></div></div>`).join("")||'<p class="mut">Hali natija yo‘q.</p>'}`}
+async function push(){if(!me)return;const B=Object.values(S.box);
+ const r=await sb.rpc("wb_sync",{p_id:me.id,p_secret:me.secret,p_name:me.name,p_data:{box:S.box,p:S.p,comp:S.comp,wr:S.wr||{},my:S.my||[]},p_added:B.length,p_active:B.filter(act).length,p_read:ARTS().filter(a=>P(a.id)[0]).length,p_stages:ARTS().reduce((n,a)=>n+nDone(a.id),0)});
+ setSync(r.error?"✗ "+r.error.message:"✓")}
 async function prog(){tab="prog";$("#v").innerHTML='<p class="mut">Yuklanmoqda...</p>';
- const [a,b]=await Promise.all([sb.from("wb_progress").select("words_added,words_active,stages_done,updated_at,profiles(full_name,phone,role)"),sb.from("profiles").select("id",{count:"exact",head:true}).eq("role","student")]);
- const L=(a.data||[]).filter(x=>x.profiles?.role!=="teacher").slice().sort((x,y)=>y.words_active-x.words_active||y.stages_done-x.stages_done),fd=d=>new Date(d).toLocaleDateString("en-CA"),td=fd(new Date());
- const tw=L.reduce((n,x)=>n+x.words_active,0),ta=L.filter(x=>fd(x.updated_at)===td).length,md=["🥇","🥈","🥉"];
- $("#v").innerHTML=`<h2>Progress</h2><div class="stats"><div class="stat"><b>${b.count||0}</b>o‘quvchi</div><div class="stat"><b>${ta}</b>bugun faol</div><div class="stat"><b>${tw}</b>faol so‘zlar</div></div>
- <h3>Reyting</h3>${L.map((x,i)=>`<div class="card item"><div><h3>${md[i]||i+1+"."} ${esc(x.profiles?.full_name||"Ism yo‘q")}</h3><p class="mut">${esc(x.profiles?.phone||"")} · oxirgi faollik: ${fd(x.updated_at)}</p></div><div style="text-align:right"><b>${x.words_active}</b> faol<br><span class="mut">${x.words_added} so‘z · ${x.stages_done} bosqich</span></div></div>`).join("")||'<p class="mut">Hali o‘quvchi faolligi yo‘q.</p>'}`}
-/* ---- Writing: Task 1 Trends ---- */
+ const r=await sb.rpc("wb_admin_list",{p_pin:sessionStorage.getItem("wb_pin")||""});
+ if(r.error){$("#v").innerHTML=`<h2>Progress</h2><p class="err">${esc(r.error.message)}</p>`;return}
+ const L=r.data||[],fd=d=>new Date(d).toLocaleDateString("en-CA"),td=fd(new Date());
+ const tw=L.reduce((n,x)=>n+x.words_active,0),ta=L.filter(x=>fd(x.updated_at)===td).length;
+ $("#v").innerHTML=`<h2>Progress</h2><div class="stats"><div class="stat"><b>${L.length}</b>o‘quvchi</div><div class="stat"><b>${ta}</b>bugun faol</div><div class="stat"><b>${tw}</b>yodlangan so‘z</div></div>
+ ${L.map(x=>`<div class="card item"><div><h3>${esc(x.full_name)}</h3><p class="mut">Qo‘shilgan: ${fd(x.created_at)} · oxirgi faollik: ${fd(x.updated_at)}</p></div><div style="text-align:right"><b>${x.words_active}</b> yodlangan<br><span class="mut">${x.words_added} so‘z · ${x.articles_read} maqola</span></div></div>`).join("")||'<p class="mut">Hali o‘quvchi yo‘q.</p>'}`}
+function boot(){let m=null;try{m=JSON.parse(localStorage.getItem("wb_me"))}catch(e){}
+ if(m&&m.id&&m.secret&&m.name){ME=m;enterApp()}else if(sessionStorage.getItem("wb_pin")){enterApp()}else nameView()}
 const TOPICS=`Car sales|thousand units|20|90;Coffee consumption|million kilograms|30|95;The number of tourists|million|20|90;Electricity production|billion kWh|40|160;The unemployment rate|%|4|22;The number of internet users|million|10|95;Rice production|million tonnes|25|100;Bicycle sales|thousand units|15|85;The price of oil|dollars per barrel|20|120;Household water use|litres per person|90|190;Newspaper sales|million copies|20|90;The proportion of smokers|%|10|55;University enrolment|thousand students|30|120;Fish catches|million tonnes|20|85;The number of mobile phone subscriptions|million|15|100;Wheat exports|million tonnes|10|60;The number of cinema visits|million|20|90;Recycling rates|%|15|75;Meat consumption|kilograms per person|30|90;The number of foreign students|thousand|40|130;Gold prices|dollars per ounce|300|1200;Sales of electric cars|thousand units|10|80;The number of museum visitors|thousand|30|110;Carbon dioxide emissions|million tonnes|60|180;Housing prices|thousand dollars|80|280;The proportion of women in the workforce|%|25|70;Petrol consumption|billion litres|20|80;Book sales|million copies|15|75;The number of hospital beds|thousand|40|140;Sugar production|million tonnes|20|90;Public transport use|million journeys|30|120;The number of students learning Chinese|thousand|20|100;Fast food sales|million dollars|40|150;Solar power capacity|gigawatts|10|90;The number of marriages|thousand|30|110;The birth rate|births per 1,000 people|8|40;Milk production|million litres|30|120;The number of airline passengers|million|20|100;The proportion of sales made online|%|5|55;The use of renewable energy|%|8|50;Plastic waste|million tonnes|10|70;Tea exports|thousand tonnes|20|100;The number of theatre visitors|thousand|25|105;Cotton production|million bales|15|85;The number of library members|thousand|20|90;Bus ticket sales|million|20|90;Average rainfall|millimetres|30|130;The number of farms|thousand|25|105;Tourism revenue|billion dollars|10|70;The proportion of homes with computers|%|10|90;Hotel occupancy|%|30|90;Furniture exports|million dollars|30|120;The number of gym members|thousand|20|100;Steel production|million tonnes|30|110;The cost of university tuition|thousand dollars|5|45;Spending on advertising|billion dollars|10|70;The number of cars on the road|million|20|90;Pizza consumption|kilograms per person|10|55;The number of patients treated|thousand|30|110;Mobile app downloads|million|20|100;Wind energy output|terawatt hours|10|80;Orange juice exports|million litres|20|90`.split(";").map(s=>{const a=s.split("|");return{s:a[0],u:a[1],lo:+a[2],hi:+a[3],k:a[1]==="%"?"p":"u"}});
 const SHP=[["up","Up","↗"],["down","Down","↘"],["level","Level out","→"],["fluct","Fluctuate","〰"],["upDown","Up, then down","↗↘"],["downUp","Down, then up","↘↗"],["upUpSteep","Up, then up more steeply","↗↗"],["downDownFurther","Down, then down further","↘↘"],["upLevel","Up, then levels off","↗→"],["downLevel","Down, then levels off","↘→"],["flatUp","Flat, then up","→↗"],["flatDown","Flat, then down","→↘"],["upFluct","Up, then fluctuates","↗〰"],["downFluct","Down, then fluctuates","↘〰"],["fluctUp","Fluctuates, then up","〰↗"],["fluctDown","Fluctuates, then down","〰↘"]];
 const SEGS={up:["up"],down:["down"],level:["stable"],fluct:["fluct"],upDown:["up","down"],downUp:["down","up"],upUpSteep:["up","upSteep"],downDownFurther:["down","downFurther"],upLevel:["up","levelOff"],downLevel:["down","levelOff"],flatUp:["stable","up"],flatDown:["stable","down"],upFluct:["up","fluct"],downFluct:["down","fluct"],fluctUp:["fluct","up"],fluctDown:["fluct","down"]};
@@ -568,7 +585,7 @@ function trends(){tab="writing";
   if(pass){WR()[key]=1;save()}};
 }
 
-sb.auth.getSession().then(async({data})=>{if(data.session){try{await start(data.session.user)}catch(e){authView()}}else authView()});
+boot();
 </script>
 </body>
 </html>
